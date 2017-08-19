@@ -14,8 +14,9 @@
 #property indicator_width1 2
 #property indicator_width2 2
 
-input double   min_penetration=40.0;
-extern double  min_body_size=60.0;
+extern double     min_pierce_penetration=40.0;
+extern double     min_body_size=60.0;
+extern double     max_pinbar_size=25.0;
 
 const int      DIGIT = int(MarketInfo(Symbol(), MODE_DIGITS));
 
@@ -35,6 +36,8 @@ int OnInit()
    SetIndexArrow(1, 233);
 
    min_body_size = min_body_size / 100;
+   min_pierce_penetration = min_pierce_penetration / 100;
+   max_pinbar_size = max_pinbar_size / 100;
 
    return(INIT_SUCCEEDED);
 }
@@ -65,11 +68,11 @@ int OnCalculate(const int rates_total,
       {
          if (IsBearishReversal(i))
          {
-            down[i] = High[i] * 1.0003;
+            down[i] = High[i];
          }
          else if (IsBullishReversal(i))
          {
-            up[i] = Low[i] * 0.9997;
+            up[i] = Low[i];
          }
       }
    }
@@ -79,22 +82,38 @@ int OnCalculate(const int rates_total,
 
 bool IsBearishReversal(int i)
 {
-   bool openGreaterThenClose = Open[i] > Close[i];
-   bool isPiercing = openGreaterThenClose &&
-                     Close[i+1] > Open[i+1] &&
-                     NormalizeDouble(Open[i], DIGIT - 1) == NormalizeDouble(Close[i+1], DIGIT - 1) &&
-                     Close[i] >= Open[i+1];
+   double prev_body = MathAbs(Open[i+1] - Close[i+1]);
+   double current_body = MathAbs(Open[i] - Close[i]);
 
-   return isPiercing;
+   bool openGreaterThenClose = Open[i] > Close[i];
+   bool prevCandleBullish = Close[i+1] > Open[i+1];
+   bool currOpenIsPrevClose = NormalizeDouble(Open[i], DIGIT - 1) == NormalizeDouble(Close[i+1], DIGIT - 1);
+   bool initCriteria = openGreaterThenClose && prevCandleBullish && currOpenIsPrevClose;
+
+   bool isPiercing = initCriteria && 
+                     Close[i] >= Open[i+1] &&
+                     current_body/prev_body >= min_pierce_penetration;
+
+   bool isEngulfing = initCriteria && Close[i] <= Open[i+1];
+
+   return isPiercing || isEngulfing;
 }
 
 bool IsBullishReversal(int i)
-{
+{   
+   double prev_body = MathAbs(Open[i+1] - Close[i+1]);
+   double current_body = MathAbs(Open[i] - Close[i]);
+
    bool closeGreaterThenOpen = Close[i] > Open[i];
-   bool isPiercing = closeGreaterThenOpen &&
-                     Close[i+1] < Open[i+1] &&
-                     NormalizeDouble(Open[i], DIGIT - 1) == NormalizeDouble(Close[i+1], DIGIT - 1) &&
-                     Close[i] <= Open[i+1];
+   bool prevCandleBearish = Close[i+1] < Open[i+1];
+   bool currOpenIsPrevClose = NormalizeDouble(Open[i], DIGIT - 1) == NormalizeDouble(Close[i+1], DIGIT - 1);
+   bool initCriteria = closeGreaterThenOpen && prevCandleBearish && currOpenIsPrevClose;
+
+   bool isPiercing = initCriteria &&
+                     Close[i] <= Open[i+1] &&
+                     current_body/prev_body >= min_pierce_penetration;
    
-   return isPiercing;
+   bool isEngulfing = initCriteria && Close[i] >= Open[i+1];
+   
+   return isPiercing || isEngulfing;
 }
