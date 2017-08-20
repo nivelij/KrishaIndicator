@@ -14,7 +14,7 @@
 #property indicator_width1 2
 #property indicator_width2 2
 
-extern double     min_pierce_penetration=40.0;
+extern double     min_pierce_penetration=51.0;
 extern double     min_body_size=60.0;
 extern double     max_pinbar_size=25.0;
 
@@ -59,21 +59,13 @@ int OnCalculate(const int rates_total,
 
    for (int i=1;i < limit;i++)
    {
-      double prev_total = High[i+1] - Low[i+1];
-      double prev_body = MathAbs(Open[i+1] - Close[i+1]);
-      double current_total = High[i] - Low[i];
-      double current_body = MathAbs(Open[i] - Close[i]);
-
-      if (prev_body/prev_total >= min_body_size && current_body/current_total >= min_body_size)
+      if (IsBearishReversal(i))
       {
-         if (IsBearishReversal(i))
-         {
-            down[i] = High[i];
-         }
-         else if (IsBullishReversal(i))
-         {
-            up[i] = Low[i];
-         }
+         down[i] = High[i];
+      }
+      else if (IsBullishReversal(i))
+      {
+         up[i] = Low[i];
       }
    }
    
@@ -82,38 +74,74 @@ int OnCalculate(const int rates_total,
 
 bool IsBearishReversal(int i)
 {
+   double prev_total = High[i+1] - Low[i+1];
    double prev_body = MathAbs(Open[i+1] - Close[i+1]);
+   double current_total = High[i] - Low[i];
    double current_body = MathAbs(Open[i] - Close[i]);
 
    bool openGreaterThenClose = Open[i] > Close[i];
    bool prevCandleBullish = Close[i+1] > Open[i+1];
-   bool currOpenIsPrevClose = NormalizeDouble(Open[i], DIGIT - 1) == NormalizeDouble(Close[i+1], DIGIT - 1);
+   bool currOpenIsPrevClose = NormalizeDouble(Open[i], DIGIT - 2) == NormalizeDouble(Close[i+1], DIGIT - 2);
    bool initCriteria = openGreaterThenClose && prevCandleBullish && currOpenIsPrevClose;
+   bool bodyMustFit = current_body/current_total >= min_body_size; 
 
-   bool isPiercing = initCriteria && 
-                     Close[i] >= Open[i+1] &&
-                     current_body/prev_body >= min_pierce_penetration;
+   /**
+    * Justification:
+    * 1. For piercing pattern, we need to ensure that previous candle has little to non rejection, as it won't burst through
+    * 2. For engulfing, as long as current body engulf previous candle high - low.
+    **/
+   bool isPiercing = initCriteria
+                     && Close[i] >= Open[i+1]
+                     && current_body/prev_body >= min_pierce_penetration
+                     && bodyMustFit
+                     && prev_body/prev_total >= min_body_size;
 
-   bool isEngulfing = initCriteria && Close[i] <= Open[i+1];
+   bool isEngulfing = initCriteria
+                     && Close[i] <= Open[i+1]
+                     && bodyMustFit;
 
-   return isPiercing || isEngulfing;
+   bool isPinbar = initCriteria
+                   && Close[i] < Close[i+1]
+                   && High[i] > High[i+1]
+                   && (Open[i] - Low[i])/current_total <= max_pinbar_size
+                   && prev_body/prev_total >= min_body_size;
+
+   return isPiercing || isEngulfing || isPinbar;
 }
 
 bool IsBullishReversal(int i)
 {   
+   double prev_total = High[i+1] - Low[i+1];
    double prev_body = MathAbs(Open[i+1] - Close[i+1]);
+   double current_total = High[i] - Low[i];
    double current_body = MathAbs(Open[i] - Close[i]);
 
    bool closeGreaterThenOpen = Close[i] > Open[i];
    bool prevCandleBearish = Close[i+1] < Open[i+1];
-   bool currOpenIsPrevClose = NormalizeDouble(Open[i], DIGIT - 1) == NormalizeDouble(Close[i+1], DIGIT - 1);
+   bool currOpenIsPrevClose = NormalizeDouble(Open[i], DIGIT - 2) == NormalizeDouble(Close[i+1], DIGIT - 2);
    bool initCriteria = closeGreaterThenOpen && prevCandleBearish && currOpenIsPrevClose;
+   bool bodyMustFit = current_body/current_total >= min_body_size; 
 
-   bool isPiercing = initCriteria &&
-                     Close[i] <= Open[i+1] &&
-                     current_body/prev_body >= min_pierce_penetration;
-   
-   bool isEngulfing = initCriteria && Close[i] >= Open[i+1];
-   
-   return isPiercing || isEngulfing;
+   /**
+    * Justification:
+    * 1. For piercing pattern, we need to ensure that previous candle has little to non rejection, as it won't burst through
+    * 2. For engulfing, as long as current body engulf previous candle high - low.
+    **/
+   bool isPiercing = initCriteria
+                     && Close[i] <= Open[i+1]
+                     && current_body/prev_body >= min_pierce_penetration
+                     && bodyMustFit
+                     && prev_body/prev_total >= min_body_size;
+
+   bool isEngulfing = initCriteria
+                     && Close[i] >= Open[i+1]
+                     && bodyMustFit;
+
+   bool isPinbar = initCriteria
+                   && Close[i] > Close[i+1]
+                   && Low[i] > Low[i+1]
+                   && (High[i] - Open[i])/current_total <= max_pinbar_size
+                   && prev_body/prev_total >= min_body_size;
+
+   return isPiercing || isEngulfing || isPinbar;
 }
