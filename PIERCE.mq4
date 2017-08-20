@@ -30,10 +30,12 @@ int OnInit()
    SetIndexBuffer(0, down);
    SetIndexStyle(0, DRAW_ARROW);
    SetIndexArrow(0, 234);
+   SetIndexLabel(0, "Bearish Reversal");
 
    SetIndexBuffer(1, up);
    SetIndexStyle(1, DRAW_ARROW);
    SetIndexArrow(1, 233);
+   SetIndexLabel(1, "Bullish Reversal");
 
    min_body_size = min_body_size / 100;
    min_pierce_penetration = min_pierce_penetration / 100;
@@ -55,25 +57,47 @@ int OnCalculate(const int rates_total,
                 const long &volume[],
                 const int &spread[])
 {
-   int limit = MathMax(rates_total - prev_calculated, 2);
+   int limit = rates_total - prev_calculated;
 
-   for (int i=1;i < limit;i++)
+   // For future candle
+   if (limit == 1)
    {
-      if (IsBearishReversal(i))
+      Logic(1);
+   }
+   // For previous candle
+   else if (limit == rates_total)
+   {
+      for (int i=1;i < limit - 1;i++)
       {
-         down[i] = High[i];
-      }
-      else if (IsBullishReversal(i))
-      {
-         up[i] = Low[i];
+         Logic(i);
       }
    }
    
    return(rates_total);
 }
 
+void Logic(int i)
+{
+   if (IsBearishReversal(i))
+   {
+      down[i] = High[i];
+   }
+   else if (IsBullishReversal(i))
+   {
+      up[i] = Low[i];
+   }
+}
+
+bool IsPriceFlat(double open, double high, double low, double close)
+{
+   return open == high && open == low && open == close;
+}
+
 bool IsBearishReversal(int i)
 {
+   if (IsPriceFlat(Open[i+1], High[i+1], Low[i+1], Close[i+1]) || IsPriceFlat(Open[i], High[i], Low[i], Close[i]))
+      return false;
+
    double prev_total = High[i+1] - Low[i+1];
    double prev_body = MathAbs(Open[i+1] - Close[i+1]);
    double current_total = High[i] - Low[i];
@@ -111,6 +135,9 @@ bool IsBearishReversal(int i)
 
 bool IsBullishReversal(int i)
 {   
+   if (IsPriceFlat(Open[i+1], High[i+1], Low[i+1], Close[i+1]) || IsPriceFlat(Open[i], High[i], Low[i], Close[i]))
+      return false;
+
    double prev_total = High[i+1] - Low[i+1];
    double prev_body = MathAbs(Open[i+1] - Close[i+1]);
    double current_total = High[i] - Low[i];
