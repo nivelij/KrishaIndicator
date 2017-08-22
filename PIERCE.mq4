@@ -120,8 +120,10 @@ bool IsBearishReversal(int i)
                      && bodyMustFit
                      && prev_body/prev_total >= min_body_size;
 
-   bool isEngulfing = initCriteria
-                     && Close[i] <= Open[i+1]
+   bool isEngulfing = openGreaterThenClose
+                     && prevCandleBullish
+                     && (Close[i+1] <= Open[i] || currOpenIsPrevClose)  // To cater for current candle engulf whole previous candle body
+                     && Close[i] < Open[i+1]
                      && bodyMustFit;
 
    bool isPinbar = initCriteria
@@ -160,8 +162,10 @@ bool IsBullishReversal(int i)
                      && bodyMustFit
                      && prev_body/prev_total >= min_body_size;
 
-   bool isEngulfing = initCriteria
-                     && Close[i] >= Open[i+1]
+   bool isEngulfing = closeGreaterThenOpen
+                     && prevCandleBearish
+                     && (Close[i+1] >= Open[i] || currOpenIsPrevClose)  // To cater for current candle engulf whole previous candle body
+                     && Close[i] > Open[i+1]
                      && bodyMustFit;
 
    bool isPinbar = initCriteria
