@@ -14,9 +14,9 @@
 #property indicator_width1 2
 #property indicator_width2 2
 
-extern double     min_pierce_penetration=51.0;
-extern double     min_body_size=60.0;
-extern double     max_pinbar_size=25.0;
+extern double     MinPiercePenetration=51.0;
+extern double     MinBodySize=60.0;
+extern double     MaxPinbarSize=25.0;
 
 const int      DIGIT = int(MarketInfo(Symbol(), MODE_DIGITS));
 
@@ -37,9 +37,9 @@ int OnInit()
    SetIndexArrow(1, 233);
    SetIndexLabel(1, "Bullish Reversal");
 
-   min_body_size = min_body_size / 100;
-   min_pierce_penetration = min_pierce_penetration / 100;
-   max_pinbar_size = max_pinbar_size / 100;
+   MinBodySize = MinBodySize / 100;
+   MinPiercePenetration = MinPiercePenetration / 100;
+   MaxPinbarSize = MaxPinbarSize / 100;
 
    return(INIT_SUCCEEDED);
 }
@@ -107,7 +107,7 @@ bool IsBearishReversal(int i)
    bool prevCandleBullish = Close[i+1] > Open[i+1];
    bool currOpenIsPrevClose = NormalizeDouble(Open[i], DIGIT - 1) == NormalizeDouble(Close[i+1], DIGIT - 1);
    bool initCriteria = openGreaterThenClose && prevCandleBullish && currOpenIsPrevClose;
-   bool bodyMustFit = current_body/current_total >= min_body_size; 
+   bool bodyMustFit = current_body/current_total >= MinBodySize; 
 
    /**
     * Justification:
@@ -116,9 +116,9 @@ bool IsBearishReversal(int i)
     **/
    bool isPiercing = initCriteria
                      && Close[i] >= Open[i+1]
-                     && current_body/prev_body >= min_pierce_penetration
+                     && current_body/prev_body >= MinPiercePenetration
                      && bodyMustFit
-                     && prev_body/prev_total >= min_body_size;
+                     && prev_body/prev_total >= MinBodySize;
 
    bool isEngulfing = openGreaterThenClose
                      && prevCandleBullish
@@ -129,8 +129,8 @@ bool IsBearishReversal(int i)
    bool isPinbar = initCriteria
                    && Close[i] < Close[i+1]
                    && High[i] > High[i+1]
-                   && (Open[i] - Low[i])/current_total <= max_pinbar_size
-                   && prev_body/prev_total >= min_body_size;
+                   && (Open[i] - Low[i])/current_total <= MaxPinbarSize
+                   && prev_body/prev_total >= MinBodySize;
 
    return isPiercing || isEngulfing || isPinbar;
 }
@@ -149,7 +149,7 @@ bool IsBullishReversal(int i)
    bool prevCandleBearish = Close[i+1] < Open[i+1];
    bool currOpenIsPrevClose = NormalizeDouble(Open[i], DIGIT - 1) == NormalizeDouble(Close[i+1], DIGIT - 1);
    bool initCriteria = closeGreaterThenOpen && prevCandleBearish && currOpenIsPrevClose;
-   bool bodyMustFit = current_body/current_total >= min_body_size; 
+   bool bodyMustFit = current_body/current_total >= MinBodySize; 
 
    /**
     * Justification:
@@ -158,9 +158,9 @@ bool IsBullishReversal(int i)
     **/
    bool isPiercing = initCriteria
                      && Close[i] <= Open[i+1]
-                     && current_body/prev_body >= min_pierce_penetration
+                     && current_body/prev_body >= MinPiercePenetration
                      && bodyMustFit
-                     && prev_body/prev_total >= min_body_size;
+                     && prev_body/prev_total >= MinBodySize;
 
    bool isEngulfing = closeGreaterThenOpen
                      && prevCandleBearish
@@ -171,8 +171,8 @@ bool IsBullishReversal(int i)
    bool isPinbar = initCriteria
                    && Close[i] > Close[i+1]
                    && Low[i] > Low[i+1]
-                   && (High[i] - Open[i])/current_total <= max_pinbar_size
-                   && prev_body/prev_total >= min_body_size;
+                   && (High[i] - Open[i])/current_total <= MaxPinbarSize
+                   && prev_body/prev_total >= MinBodySize;
 
    return isPiercing || isEngulfing || isPinbar;
 }
