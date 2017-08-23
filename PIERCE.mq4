@@ -105,7 +105,7 @@ bool IsBearishReversal(int i)
 
    bool openGreaterThenClose = Open[i] > Close[i];
    bool prevCandleBullish = Close[i+1] > Open[i+1];
-   bool currOpenIsPrevClose = NormalizeDouble(Open[i], DIGIT - 2) == NormalizeDouble(Close[i+1], DIGIT - 2);
+   bool currOpenIsPrevClose = NormalizeDouble(Open[i], DIGIT - 1) == NormalizeDouble(Close[i+1], DIGIT - 1);
    bool initCriteria = openGreaterThenClose && prevCandleBullish && currOpenIsPrevClose;
    bool bodyMustFit = current_body/current_total >= min_body_size; 
 
@@ -147,7 +147,7 @@ bool IsBullishReversal(int i)
 
    bool closeGreaterThenOpen = Close[i] > Open[i];
    bool prevCandleBearish = Close[i+1] < Open[i+1];
-   bool currOpenIsPrevClose = NormalizeDouble(Open[i], DIGIT - 2) == NormalizeDouble(Close[i+1], DIGIT - 2);
+   bool currOpenIsPrevClose = NormalizeDouble(Open[i], DIGIT - 1) == NormalizeDouble(Close[i+1], DIGIT - 1);
    bool initCriteria = closeGreaterThenOpen && prevCandleBearish && currOpenIsPrevClose;
    bool bodyMustFit = current_body/current_total >= min_body_size; 
 
