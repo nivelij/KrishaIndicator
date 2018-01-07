@@ -111,7 +111,18 @@ int OnCalculate(const int rates_total,
             {
                if (currentIteratedDay != innerDay)
                {
-                  DrawRectangle(GetRectObjectName(rectIndex), time[i], highOfTheDay, time[lastIndex], lowOfTheDay, alternatingColor[rectIndex % 2]);
+                  datetime tEndDt;
+                  
+                  if (lastIndex > 0)
+                  {
+                     tEndDt = time[lastIndex - 1];
+                  }
+                  else
+                  {
+                     tEndDt = time[lastIndex] + (Period() * 60);
+                  }
+                  
+                  DrawRectangle(GetRectObjectName(rectIndex), time[i-1], highOfTheDay, tEndDt, lowOfTheDay, alternatingColor[rectIndex % 2]);
 
                   currentIteratedDay = innerDay;
                   lastIndex = i;
