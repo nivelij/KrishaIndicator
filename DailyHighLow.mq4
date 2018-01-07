@@ -14,7 +14,7 @@
 //+------------------------------------------------------------------+
 
 const sinput color   ALTER_COLOR_1 = C'40,20,156';   // Custom Alternate Color #1
-const sinput color   ALTER_COLOR_2 = C'20,148,132';  // Custom Alternate Color #2
+const sinput color   ALTER_COLOR_2 = C'153,153,153';  // Custom Alternate Color #2
 
 const string         RECT_CHART_TEMPLATE = "cRectDailySR_";
 const long           CHART_ID = ChartID();
